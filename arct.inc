@@ -141,8 +141,8 @@ stock IsPEnExCar(playerid)
 stock ActPlayerDown(playerid)
 {
     new playeranim = GetPlayerAnimationIndex(playerid);
- 
-    if (((playeranim == 1208) || (playeranim == 1209))) return 1;
+
+    if (((playeranim == 1208) ||(playeranim == 1155) || (playeranim == 1156) || (playeranim == 1209))) return 1;
     else return 0;
 }
 
