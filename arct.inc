@@ -62,6 +62,11 @@ forward ActDelay(playerid);
 forward OnPlayerEnterVehicleACT(playerid, vehicleid, ispassenger);
 #endif
  
+#if defined OnPlayerUpdateACT
+    forward OnPlayerUpdateACT(playerid);
+#endif
+
+
 #if defined OnPlayerConnectACT
 forward OnPlayerConnectACT(playerid);
 #endif
@@ -499,7 +504,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
         ActPlayer[playerid][ActOVeh] = GetPlayerVehicleID(playerid);
         }
     }
-    
+
         #if defined OnPlayerStateChangeACT
     return OnPlayerStateChangeACT(playerid,newstate,oldstate);
         #else
@@ -597,7 +602,7 @@ public ActPutPlayerInVehicle(playerid, vehicleid, seatid)
     #define _ALS_OnPlayerSpawn
 #endif
  
-#define OnPlayerSpawn OnPlayerSpawnACT
+#define OnPlayerSpawn OnPlayerSpawnAct
 
 #if defined _ALS_OnPlayerDisconnect
   #undef OnPlayerDisconnect
