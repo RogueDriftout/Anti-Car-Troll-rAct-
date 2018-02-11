@@ -226,7 +226,7 @@ public AntiCarTroll(playerid)
             #endif
             #if defined ManualUse
             #if defined OnPlayerCarTroll
-            return OnPlayerCarTroll(playerid,i);
+            OnPlayerCarTroll(playerid, ActVeh);
             #endif
             #else
             #if defined BanVersion
@@ -235,10 +235,12 @@ public AntiCarTroll(playerid)
             format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
             #endif   
             #endif         
-            SetVehicleToRespawn(ActVeh);
-            ActPlayer[playerid][ActOVeh] = ActVeh;
+            #if !defined ManualUse
             SendClientMessageToAll(0xFF0000A,actmsg);
             SetTimerEx("ActDelay",250,false,"d",playerid);
+            #endif
+            SetVehicleToRespawn(ActVeh);
+            ActPlayer[playerid][ActOVeh] = ActVeh;
             }
         }
 
@@ -437,7 +439,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
                 #endif
                 #if defined ManualUse
                 #if defined OnPlayerCarTroll
-                return OnPlayerCarTroll(playerid,i);
+                OnPlayerCarTroll(playerid, GetPlayerVehicleID(playerid));
                 #endif
                 #else
                 #if defined BanVersion
@@ -446,8 +448,10 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
                 format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
                 #endif
                 #endif
+                #if !defined ManualUse
                 SendClientMessageToAll(0xFF0000A,actmsg);
                 SetTimerEx("ActDelay",250,false,"d",playerid);
+                #endif
                 }
 
             else if(ActPlayer[playerid][ActProtectFalse]) ActPlayer[playerid][ActProtectFalse] = false;
@@ -477,7 +481,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
             #endif
             #if defined ManualUse
             #if defined OnPlayerCarTroll
-            return OnPlayerCarTroll(playerid,i);
+            OnPlayerCarTroll(playerid,GetPlayerVehicleID(playerid));
             #endif
             #else
             #if defined BanVersion
@@ -486,13 +490,16 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
             format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
             #endif
             #endif
+            #if !defined ManualUse
             SendClientMessageToAll(0xFF0000A,actmsg);
             SetTimerEx("ActDelay",250,false,"d",playerid);
+            #endif
             }
         else if(ActPlayer[playerid][ActProtectFalse]) ActPlayer[playerid][ActProtectFalse] = false;
         ActPlayer[playerid][ActOVeh] = GetPlayerVehicleID(playerid);
         }
     }
+    
         #if defined OnPlayerStateChangeACT
     return OnPlayerStateChangeACT(playerid,newstate,oldstate);
         #else
@@ -508,6 +515,7 @@ public OnPlayerDeath(playerid, killerid, reason)
     {
         ActPlayer[playerid][ResetTAct] = SetTimerEx("ActReset",500,false,"d",playerid);
         }
+
         #if defined OnPlayerDeathACT
         return OnPlayerDeathACT(playerid, killerid, reason);
         #else
@@ -541,6 +549,7 @@ public OnPlayerDisconnect(playerid, reason)
         ActVehicle[gpVehicleID][VehicleTaken] =false;
         ActVehicle[gpVehicleID][VehicleTempOwner] = -1;
         }
+
         #if defined OnPlayerDisconnectACT
         return OnPlayerDisconnectACT(playerid, reason);
         #else
@@ -665,6 +674,7 @@ public ActPutPlayerInVehicle(playerid, vehicleid, seatid)
 #define PutPlayerInVehicle ActFPutPlayerInVehicle
  
 stock ActFPutPlayerInVehicle(playerid, vehicleid, seatid)
+
     return CallRemoteFunction("ActPutPlayerInVehicle","iii",playerid, vehicleid, seatid);
  
 #endif
