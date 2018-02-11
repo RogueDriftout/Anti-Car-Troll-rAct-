@@ -1,6 +1,13 @@
-//Anti car troll include by RogueDrifter Jan 15th 2018
-//Last Updated : 2018 Feb 11th
- 
+/*
+Anti car troll include by RogueDrifter Jan 15th 2018
+-=-=-=-=-=-
+Last Updated : 2018 Feb 11th
+-=-=-=-=-=-=-=-=-
+Callback:
+-=-=-=-=-
+OnPlayerCarTroll(playerid, vehicleid, trolledid);
+*/
+
 #if defined _AntiCarTroll_included
     #endinput
 #endif
@@ -131,6 +138,14 @@ stock IsPEnExCar(playerid)
     else return 0;
 }
 
+stock ActPlayerDown(playerid)
+{
+    new playeranim = GetPlayerAnimationIndex(playerid);
+ 
+    if (((playeranim == 1208) || (playeranim == 1209))) return 1;
+    else return 0;
+}
+
 stock ActCarEmpty(vehicleid)
 {
     for(new i, j = GetPlayerPoolSize(); i <= j; i++)
@@ -231,7 +246,7 @@ public AntiCarTroll(playerid)
             #endif
             #if defined ManualUse
             #if defined OnPlayerCarTroll
-            OnPlayerCarTroll(playerid, ActVeh);
+            OnPlayerCarTroll(playerid, ActVeh, -1);
             #endif
             #else
             #if defined BanVersion
@@ -274,7 +289,7 @@ public AntiCarTroll(playerid)
         #endif
         #if defined ManualUse
         #if defined OnPlayerCarTroll
-        return OnPlayerCarTroll(playerid,i);
+        return OnPlayerCarTroll(playerid,i, ActVehicle[i][VehicleTempOwner]);
         #endif
         #else
         #if defined BanVersion
@@ -293,7 +308,7 @@ public AntiCarTroll(playerid)
 #if defined ManualUse
     #if defined OnPlayerCarTroll
  
-    forward OnPlayerCarTroll(playerid,vehicleid);// Only use if you defined ManualUse
+    forward OnPlayerCarTroll(playerid,vehicleid, trolledid);// Only use if you defined ManualUse
 
     #endif
  
@@ -335,7 +350,7 @@ public OnPlayerUpdate(playerid)
             if(!IsPlayerConnected(i)) continue;
             new Float:ActTempX, Float:ActTempY, Float:ActTempZ;
             GetPlayerPos(i, ActTempX, ActTempY, ActTempZ);
-            if(IsPlayerInRangeOfPoint(playerid, 3.0, ActTempX, ActTempY, ActTempZ) && !ActPlayer[i][ActAntiSpam] && GetPlayerState(i) == PLAYER_STATE_DRIVER && i != playerid && GetPlayerState(playerid) == 1)
+            if(IsPlayerInRangeOfPoint(playerid, 3.0, ActTempX, ActTempY, ActTempZ) && !ActPlayer[i][ActAntiSpam] && GetPlayerState(i) == PLAYER_STATE_DRIVER && i != playerid && GetPlayerState(playerid) == 1 && GetPlayerSurfingVehicleID(playerid) == INVALID_VEHICLE_ID && !ActPlayerDown(playerid))
             {
                 ActPlayer[i][ActAntiSpam]=true; 
                 SetVehicleToRespawn(GetPlayerVehicleID(i));
@@ -356,7 +371,7 @@ public OnPlayerUpdate(playerid)
                 #endif
                 #if defined ManualUse
                 #if defined OnPlayerCarTroll
-                return OnPlayerCarTroll(playerid,i);
+                return OnPlayerCarTroll(playerid, GetPlayerVehicleID(i), i);
                 #endif
                 #else
                 #if defined BanVersion
@@ -444,7 +459,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
                 #endif
                 #if defined ManualUse
                 #if defined OnPlayerCarTroll
-                OnPlayerCarTroll(playerid, GetPlayerVehicleID(playerid));
+                OnPlayerCarTroll(playerid, GetPlayerVehicleID(playerid), -1);
                 #endif
                 #else
                 #if defined BanVersion
@@ -486,7 +501,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
             #endif
             #if defined ManualUse
             #if defined OnPlayerCarTroll
-            OnPlayerCarTroll(playerid,GetPlayerVehicleID(playerid));
+            OnPlayerCarTroll(playerid,GetPlayerVehicleID(playerid), -1);
             #endif
             #else
             #if defined BanVersion
