@@ -48,8 +48,7 @@ new
     ActPlayer[MAX_PLAYERS][ActPData],
     ActVehicle[MAX_VEHICLES][ActVData];
  
-#if defined IsValidVehicle
-#else
+#if !defined IsValidVehicle
 native IsValidVehicle(vehicleid); // Unlock the hidden native
 #endif
 
@@ -85,6 +84,7 @@ forward OnPlayerDisconnectACT(playerid, reason);
 #if defined OnPlayerExitVehicleACT
 forward OnPlayerExitVehicleACT(playerid, vehicleid);
 #endif
+
 #if defined OnPlayerDeathACT
 forward OnPlayerDeathACT(playerid, killerid, reason);
 #endif
@@ -107,7 +107,7 @@ forward OnGameModeExitACT();
 
 public OnGameModeInit()
 {
-        print("     [[--|| rACT V1.0 ||--]]     ");
+        print("     [[--|| rACT V6.0 ||--]]     ");
         print("     [[--|| Anti car troll by RogueDrifter V 1.0 ||--]]      ");
         print("     [[--|| Successfully Loaded! ||--]]      ");
         SafeTimer = SetTimer("SafeReset",5000,true);
@@ -230,7 +230,7 @@ public AntiCarTroll(playerid)
     if(GetPlayerState(playerid) == 2 || GetPlayerState(playerid) == 3)
     {
         new ActVeh = GetPlayerVehicleID(playerid);
-        if(ActVeh != ActPlayer[playerid][ActOVeh] && GetPlayerState(playerid) != 9 && !ActPlayer[playerid][ActProtectFalse] && !ActPlayer[playerid][ActAntiSpam])
+        if(ActVeh != ActPlayer[playerid][ActOVeh] && !ActPlayer[playerid][ActProtectFalse] && !ActPlayer[playerid][ActAntiSpam])
         {            
             ActPlayer[playerid][ActAntiSpam]=true;
             SetTimerEx("ActResetSpam",2500,false,"d",playerid);
