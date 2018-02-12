@@ -246,7 +246,7 @@ public AntiCarTroll(playerid)
             #endif
             #if defined ManualUse
             #if defined OnPlayerCarTroll
-            OnPlayerCarTroll(playerid, ActVeh, -1);
+            OnPlayerCarTroll(playerid, ActVeh, INVALID_PLAYER_ID);
             #endif
             #else
             #if defined BanVersion
@@ -459,7 +459,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
                 #endif
                 #if defined ManualUse
                 #if defined OnPlayerCarTroll
-                OnPlayerCarTroll(playerid, GetPlayerVehicleID(playerid), -1);
+                OnPlayerCarTroll(playerid, GetPlayerVehicleID(playerid), INVALID_PLAYER_ID);
                 #endif
                 #else
                 #if defined BanVersion
@@ -501,7 +501,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
             #endif
             #if defined ManualUse
             #if defined OnPlayerCarTroll
-            OnPlayerCarTroll(playerid,GetPlayerVehicleID(playerid), -1);
+            OnPlayerCarTroll(playerid,GetPlayerVehicleID(playerid), INVALID_PLAYER_ID);
             #endif
             #else
             #if defined BanVersion
