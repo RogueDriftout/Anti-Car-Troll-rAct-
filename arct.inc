@@ -5,7 +5,12 @@ Last Updated : 2018 Feb 11th
 -=-=-=-=-=-=-=-=-
 Callback:
 -=-=-=-=-
-OnPlayerCarTroll(playerid, vehicleid, trolledid);
+OnPlayerCarTroll(playerid, vehicleid, trolledid, trolltype);
+-=-=-=-=-=-=-=-=--=-=-=-=
+Type 1: Teleporting between vehicles (can give cheaters chance to control other's players)
+Type 2: Control other player's cars or spin/rotate (Done by checking the player's actual vehicle)
+Type 3: Fast kick/rotate or teleporting inside drivers
+Type 4: Teleporting inside a vehicle illegally (without PutPlayerInVehicle or OnPlayerEnterVehicle)
 */
 
 #if defined _AntiCarTroll_included
@@ -108,7 +113,7 @@ forward OnGameModeExitACT();
 public OnGameModeInit()
 {
         print("     [[--|| rACT V6.0 ||--]]     ");
-        print("     [[--|| Anti car troll by RogueDrifter V 1.0 ||--]]      ");
+        print("     [[--|| Anti car troll by RogueDrifter V 6.0 ||--]]      ");
         print("     [[--|| Successfully Loaded! ||--]]      ");
         SafeTimer = SetTimer("SafeReset",5000,true);
         #if defined OnGameModeInitACT
@@ -246,7 +251,7 @@ public AntiCarTroll(playerid)
             #endif
             #if defined ManualUse
             #if defined OnPlayerCarTroll
-            OnPlayerCarTroll(playerid, ActVeh, INVALID_PLAYER_ID);
+            OnPlayerCarTroll(playerid, ActVeh, INVALID_PLAYER_ID, 1);
             #endif
             #else
             #if defined BanVersion
@@ -289,7 +294,7 @@ public AntiCarTroll(playerid)
         #endif
         #if defined ManualUse
         #if defined OnPlayerCarTroll
-        return OnPlayerCarTroll(playerid,i, ActVehicle[i][VehicleTempOwner]);
+        return OnPlayerCarTroll(playerid,i, ActVehicle[i][VehicleTempOwner], 2);
         #endif
         #else
         #if defined BanVersion
@@ -308,7 +313,7 @@ public AntiCarTroll(playerid)
 #if defined ManualUse
     #if defined OnPlayerCarTroll
  
-    forward OnPlayerCarTroll(playerid,vehicleid, trolledid);// Only use if you defined ManualUse
+    forward OnPlayerCarTroll(playerid,vehicleid, trolledid, trolltype);// Only use if you defined ManualUse
 
     #endif
  
@@ -371,7 +376,7 @@ public OnPlayerUpdate(playerid)
                 #endif
                 #if defined ManualUse
                 #if defined OnPlayerCarTroll
-                return OnPlayerCarTroll(playerid, GetPlayerVehicleID(i), i);
+                return OnPlayerCarTroll(playerid, GetPlayerVehicleID(i), i, 3);
                 #endif
                 #else
                 #if defined BanVersion
@@ -459,7 +464,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
                 #endif
                 #if defined ManualUse
                 #if defined OnPlayerCarTroll
-                OnPlayerCarTroll(playerid, GetPlayerVehicleID(playerid), INVALID_PLAYER_ID);
+                OnPlayerCarTroll(playerid, GetPlayerVehicleID(playerid), INVALID_PLAYER_ID, 4);
                 #endif
                 #else
                 #if defined BanVersion
@@ -501,7 +506,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
             #endif
             #if defined ManualUse
             #if defined OnPlayerCarTroll
-            OnPlayerCarTroll(playerid,GetPlayerVehicleID(playerid), INVALID_PLAYER_ID);
+            OnPlayerCarTroll(playerid,GetPlayerVehicleID(playerid), INVALID_PLAYER_ID, 4);
             #endif
             #else
             #if defined BanVersion
