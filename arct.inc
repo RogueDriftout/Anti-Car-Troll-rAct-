@@ -1,7 +1,7 @@
 /*
 Anti car troll include by RogueDrifter Jan 15th 2018
 -=-=-=-=-=-
-Last Updated : 2018 Feb 11th
+Last Updated : 2018 Feb 13th
 -=-=-=-=-=-=-=-=-
 Callback:
 -=-=-=-=-
@@ -31,11 +31,13 @@ enum ActPData
     bool:AntiJackBug,
     bool:IsDPaused,
     bool:ActProtectFalse,
- 
+    bool:ActProtectPos,
+
     Float:ActPX,
     Float:ActPY,
     Float:ActPZ,
 
+    ActTCheck,
     ActTimer,
     ActOVeh,
     ResetTAct,
@@ -58,7 +60,9 @@ native IsValidVehicle(vehicleid); // Unlock the hidden native
 #endif
 
 forward ActPutPlayerInVehicle(playerid, vehicleid, seatid);
+forward ActSetPlayerPos(playerid, Float:x, Float:y, Float:z);
 
+forward ActRPosP(playerid);
 forward ActResetPos(playerid);
 forward ActRelease(playerid);
 forward ActResetSpam(playerid);
@@ -112,7 +116,7 @@ forward OnGameModeExitACT();
 
 public OnGameModeInit()
 {
-        print("     [[--|| rACT V6.0 ||--]]     ");
+        print("     [[--|| rACT V7.0 ||--]]     ");
         print("     [[--|| Anti car troll by RogueDrifter V 6.0 ||--]]      ");
         print("     [[--|| Successfully Loaded! ||--]]      ");
         SafeTimer = SetTimer("SafeReset",5000,true);
@@ -217,6 +221,7 @@ public OnPlayerConnect(playerid)
     ActPlayer[playerid][AntiJackBug]=false;
 
     ActPlayer[playerid][ActTimer] = SetTimerEx("ActResetPos", 1000, true, "d", playerid);
+    ActPlayer[playerid][ActTCheck] = SetTimerEx("AntiCarTroll", 250, true, "d", playerid);
 
     ActPlayer[playerid][ActPX] = 0;
     ActPlayer[playerid][ActPY] = 0;
@@ -355,7 +360,7 @@ public OnPlayerUpdate(playerid)
             if(!IsPlayerConnected(i)) continue;
             new Float:ActTempX, Float:ActTempY, Float:ActTempZ;
             GetPlayerPos(i, ActTempX, ActTempY, ActTempZ);
-            if(IsPlayerInRangeOfPoint(playerid, 3.0, ActTempX, ActTempY, ActTempZ) && !ActPlayer[i][ActAntiSpam] && GetPlayerState(i) == PLAYER_STATE_DRIVER && i != playerid && GetPlayerState(playerid) == 1 && GetPlayerSurfingVehicleID(playerid) == INVALID_VEHICLE_ID && !ActPlayerDown(playerid))
+            if(IsPlayerInRangeOfPoint(playerid, 3.0, ActTempX, ActTempY, ActTempZ) && !ActPlayer[playerid][ActProtectPos] && !ActPlayer[i][ActAntiSpam] && GetPlayerState(i) == PLAYER_STATE_DRIVER && i != playerid && GetPlayerState(playerid) == 1 && GetPlayerSurfingVehicleID(playerid) == INVALID_VEHICLE_ID && !ActPlayerDown(playerid))
             {
                 ActPlayer[i][ActAntiSpam]=true; 
                 SetVehicleToRespawn(GetPlayerVehicleID(i));
@@ -390,8 +395,6 @@ public OnPlayerUpdate(playerid)
                 }
             }
         }
-
-    AntiCarTroll(playerid);
 
     ActPlayer[playerid][pPauseTick] = GetTickCount();
     new Float:ActX, Float:ActY, Float:ActZ;
@@ -562,10 +565,12 @@ public OnPlayerExitVehicle(playerid,vehicleid)
 public OnPlayerDisconnect(playerid, reason)
 {
     KillTimer(ActPlayer[playerid][ActTimer]);
+    KillTimer(ActPlayer[playerid][ActTCheck]);
 
     new gpVehicleID;
     gpVehicleID = GetPlayerVehicleID(playerid);
  
+    ActPlayer[playerid][ActProtectPos] = false;
     ActPlayer[playerid][IsDPaused] = false;
     ActPlayer[playerid][ActProtectFalse] = false;
  
@@ -599,7 +604,17 @@ public ActPutPlayerInVehicle(playerid, vehicleid, seatid)
     else PutPlayerInVehicle(playerid, vehicleid, seatid);
     return 1;
 }
- 
+
+public ActRPosP(playerid) return ActPlayer[playerid][ActProtectPos] = false;
+
+public ActSetPlayerPos(playerid, Float:x, Float:y, Float:z)
+{
+    if(!ActPlayer[playerid][ActProtectPos]) SetTimerEx("ActRPosP",2100,false,"i",playerid);
+    ActPlayer[playerid][ActProtectPos] = true;
+    SetPlayerPos(playerid, x, y, z);
+    return 1;
+}
+
 #if defined _ALS_OnPlayerStateChange
   #undef OnPlayerStateChange
 #else
@@ -687,8 +702,16 @@ public ActPutPlayerInVehicle(playerid, vehicleid, seatid)
 #endif
  
 #define PutPlayerInVehicle ActPutPlayerInVehicle
- 
+
+#if defined _ALS_SetPlayerPos
+  #undef SetPlayerPos
 #else
+    #define _ALS_SetPlayerPos
+#endif
+ 
+#define SetPlayerPos ActSetPlayerPos
+
+#else //If it's a filterscript
  
 #if defined _ALS_PutPlayerInVehicle
   #undef PutPlayerInVehicle
@@ -697,9 +720,21 @@ public ActPutPlayerInVehicle(playerid, vehicleid, seatid)
 #endif
  
 #define PutPlayerInVehicle ActFPutPlayerInVehicle
+
+#if defined _ALS_SetPlayerPos
+  #undef SetPlayerPos
+#else
+    #define _ALS_SetPlayerPos
+#endif
  
+#define SetPlayerPos ActFSetPlayerPos
+
 stock ActFPutPlayerInVehicle(playerid, vehicleid, seatid)
 
     return CallRemoteFunction("ActPutPlayerInVehicle","iii",playerid, vehicleid, seatid);
- 
+
+stock ActFSetPlayerPos(playerid, Float:x, Float:y, Float:z)
+
+    return CallRemoteFunction("ActSetPlayerPos","ifff",playerid, x, y, z);
+
 #endif
