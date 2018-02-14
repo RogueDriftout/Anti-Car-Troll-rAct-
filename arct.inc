@@ -120,6 +120,7 @@ public OnGameModeInit()
         print("     [[--|| Anti car troll by RogueDrifter V 6.0 ||--]]      ");
         print("     [[--|| Successfully Loaded! ||--]]      ");
         SafeTimer = SetTimer("SafeReset",5000,true);
+        
         #if defined OnGameModeInitACT
         return OnGameModeInitACT();
         #else
@@ -374,7 +375,6 @@ public OnPlayerUpdate(playerid)
                 GetPlayerName(playerid,pName,sizeof(pName));
                 #endif
                 #if defined Extreme_Safe
-                SetPlayerHealth(playerid,0);
                 format(actmsg,sizeof(actmsg),".: Server has scanned %s for Car Troll Cheats :.",pName);
                 SendClientMessageToAll(0xAA3333AA,actmsg);
                 return 1;
