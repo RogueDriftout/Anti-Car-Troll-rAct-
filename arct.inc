@@ -1,18 +1,19 @@
 /*
 Anti car troll include by RogueDrifter Jan 15th 2018
 -=-=-=-=-=-
-Last Updated : 2018 Feb 13th
+Last Updated : 2018 Feb 22nd
 -=-=-=-=-=-=-=-=-
 Callback:
 -=-=-=-=-
 OnPlayerCarTroll(playerid, vehicleid, trolledid, trolltype);
 -=-=-=-=-=-=-=-=--=-=-=-=
-Type 1: Teleporting between vehicles (can give cheaters chance to control other's players)
-Type 2: Control other player's cars or spin/rotate (Done by checking the player's actual vehicle)
-Type 3: Fast kick/rotate or teleporting inside drivers
-Type 4: Teleporting inside a vehicle illegally (without PutPlayerInVehicle or OnPlayerEnterVehicle)
+Type 1: Teleporting between vehicles (can give cheaters chance to control other's players).
+Type 2: Control other player's cars or spin/rotate (Done by checking the player's actual vehicle).
+Type 3: Fast kick/rotate or teleporting inside drivers.
+Type 4: Teleporting inside a vehicle illegally (without PutPlayerInVehicle or OnPlayerEnterVehicle).
+Type 5: Remote jacking a vehicle.
 */
-
+ 
 #if defined _AntiCarTroll_included
     #endinput
 #endif
@@ -32,17 +33,21 @@ enum ActPData
     bool:IsDPaused,
     bool:ActProtectFalse,
     bool:ActProtectPos,
+    
 
     Float:ActPX,
     Float:ActPY,
     Float:ActPZ,
 
+    ActRemoteJack,
+    pVehicleID,
+    pPauseTick,
+    ActOVeh,
+
     ActTCheck,
     ActTimer,
-    ActOVeh,
-    ResetTAct,
-    pVehicleID,
-    pPauseTick
+    ResetTAct
+
 };
  
 enum ActVData
@@ -62,6 +67,7 @@ native IsValidVehicle(vehicleid); // Unlock the hidden native
 forward ActPutPlayerInVehicle(playerid, vehicleid, seatid);
 forward ActSetPlayerPos(playerid, Float:x, Float:y, Float:z);
 
+forward rActRemoteJack(playerid, vehicleid);
 forward ActRPosP(playerid);
 forward ActResetPos(playerid);
 forward ActRelease(playerid);
@@ -120,7 +126,7 @@ public OnGameModeInit()
         print("     [[--|| Anti car troll by RogueDrifter V 6.0 ||--]]      ");
         print("     [[--|| Successfully Loaded! ||--]]      ");
         SafeTimer = SetTimer("SafeReset",5000,true);
-        
+
         #if defined OnGameModeInitACT
         return OnGameModeInitACT();
         #else
@@ -139,21 +145,79 @@ public OnGameModeExit()
             #endif
 }
  
+#if defined ManualUse
+stock rAct_Detected(playerid, vehicleid, trolledid, trolltype)
+{
+    #if !defined ManualUse
+    new pName[MAX_PLAYER_NAME],actmsg[80];
+    GetPlayerName(playerid,pName,sizeof(pName));
+    #endif
+    #if defined Extreme_Safe
+    SetPlayerHealth(playerid,0);
+    format(actmsg,sizeof(actmsg),".: Server has scanned %s for Car Troll Cheats :.",pName);
+    SendClientMessageToAll(0xAA3333AA,actmsg);
+    #endif
+    #if defined ManualUse
+    #if defined OnPlayerCarTroll
+    OnPlayerCarTroll(playerid,vehicleid, trolledid, trolltype);
+    #endif
+    #else
+    #if defined BanVersion
+    format(actmsg,sizeof(actmsg),".: Server has banned %s, reason: Car Troll Cheats :.",pName);
+    #else
+    format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
+    #endif
+    #endif
+    #if !defined ManualUse
+    SendClientMessageToAll(0xFF0000A,actmsg);
+    SetTimerEx("ActDelay",250,false,"d",playerid);
+    #endif
+    return 1;
+}
+
+#else
+
+stock rAct_Detected(playerid)
+{
+    new pName[MAX_PLAYER_NAME],actmsg[80];
+    GetPlayerName(playerid,pName,sizeof(pName));
+    #if defined Extreme_Safe
+    SetPlayerHealth(playerid,0);
+    format(actmsg,sizeof(actmsg),".: Server has scanned %s for Car Troll Cheats :.",pName);
+    SendClientMessageToAll(0xAA3333AA,actmsg);
+    #endif
+    #if defined BanVersion
+    format(actmsg,sizeof(actmsg),".: Server has banned %s, reason: Car Troll Cheats :.",pName);
+    #else
+    format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
+    #endif
+    SendClientMessageToAll(0xFF0000A,actmsg);
+    SetTimerEx("ActDelay",250,false,"d",playerid);
+    return 1;
+}
+#endif
+
 stock IsPEnExCar(playerid)
 {
-    new playeranim = GetPlayerAnimationIndex(playerid);
- 
-    if (((playeranim == 1041) || (playeranim == 1012)) || (playeranim == 1025) || (playeranim == 1044) || (playeranim == 1045) ||
-    (playeranim == 1010) || (playeranim == 1011) || (playeranim == 1024 || (playeranim == 1043) || (playeranim == 1009))) return 1;
-    else return 0;
+    switch(GetPlayerAnimationIndex(playerid))
+    {
+        case 1010..1012: return 1;
+        case 1024..1025: return 1;
+        case 1043..1045: return 1;
+        case 1009: return 1;
+        case 1041: return 1;
+        }
+    return 0;
 }
 
 stock ActPlayerDown(playerid)
 {
-    new playeranim = GetPlayerAnimationIndex(playerid);
-
-    if (((playeranim == 1208) ||(playeranim == 1155) || (playeranim == 1156) || (playeranim == 1209))) return 1;
-    else return 0;
+    switch(GetPlayerAnimationIndex(playerid))
+    {
+        case 1208..1209: return 1;
+        case 1155..1156: return 1;
+    }
+    return 0;
 }
 
 stock ActCarEmpty(vehicleid)
@@ -167,6 +231,25 @@ stock ActCarEmpty(vehicleid)
 }
 
 public ActResetPos(playerid) return GetPlayerPos(playerid, ActPlayer[playerid][ActPX], ActPlayer[playerid][ActPY], ActPlayer[playerid][ActPZ]);
+
+public rActRemoteJack(playerid, vehicleid)
+{
+    if(ActPlayer[playerid][ActRemoteJack] == 1)
+    {
+        if(!IsPEnExCar(playerid) && GetPlayerAnimationIndex(playerid) != 1231 && GetPlayerAnimationIndex(playerid) != 1266)
+        {
+            ActPlayer[playerid][ActRemoteJack] = 2;
+            #if defined ManualUse
+            rAct_Detected(playerid, GetPlayerVehicleID(playerid), INVALID_PLAYER_ID, 5);
+            #else
+            rAct_Detected(playerid);
+            #endif
+            }
+        else ActPlayer[playerid][ActRemoteJack] = 2;
+        }
+
+    return 1;
+}
 
 public SafeReset()
 {
@@ -193,10 +276,10 @@ public SafeReset()
         }
     return 1;
 }
- 
+
 public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 {
-    if(!ispassenger) ActPlayer[playerid][ActOVeh] = vehicleid;
+    if(!ispassenger) ActPlayer[playerid][ActOVeh] = vehicleid, ActPlayer[playerid][ActRemoteJack] = 1, SetTimerEx("rActRemoteJack", 500, false, "ii", playerid, vehicleid);
     if(!ActPlayer[playerid][ActProtectFalse]) ActPlayer[playerid][ActProtectFalse] = true;
     for(new i, j = GetPlayerPoolSize(); i <= j; i++)
     {
@@ -209,6 +292,7 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
             SetTimerEx("sActReset",6000,false,"d",i);
             }
         }
+
         #if defined OnPlayerEnterVehicleACT
         return OnPlayerEnterVehicleACT(playerid, vehicleid, ispassenger);
         #else
@@ -228,7 +312,6 @@ public OnPlayerConnect(playerid)
     ActPlayer[playerid][ActPY] = 0;
     ActPlayer[playerid][ActPZ] = 0;
 
-
         #if defined OnPlayerConnectACT
         return OnPlayerConnectACT(playerid);
         #else
@@ -245,30 +328,10 @@ public AntiCarTroll(playerid)
         {            
             ActPlayer[playerid][ActAntiSpam]=true;
             SetTimerEx("ActResetSpam",2500,false,"d",playerid);
-            #if !defined ManualUse
-            new pName[MAX_PLAYER_NAME],actmsg[80];
-            GetPlayerName(playerid,pName,sizeof(pName));
-            #endif
-            #if defined Extreme_Safe
-            SetPlayerHealth(playerid,0);
-            format(actmsg,sizeof(actmsg),".: Server has scanned %s for Car Troll Cheats :.",pName);
-            SendClientMessageToAll(0xAA3333AA,actmsg);
-            return 1;
-            #endif
             #if defined ManualUse
-            #if defined OnPlayerCarTroll
-            OnPlayerCarTroll(playerid, ActVeh, INVALID_PLAYER_ID, 1);
-            #endif
+            rAct_Detected(playerid, ActVeh, INVALID_PLAYER_ID, 1);
             #else
-            #if defined BanVersion
-            format(actmsg,sizeof(actmsg),".: Server has banned %s, reason: Car Troll Cheats :.",pName);
-            #else
-            format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
-            #endif   
-            #endif         
-            #if !defined ManualUse
-            SendClientMessageToAll(0xFF0000A,actmsg);
-            SetTimerEx("ActDelay",250,false,"d",playerid);
+            rAct_Detected(playerid);
             #endif
             SetVehicleToRespawn(ActVeh);
             ActPlayer[playerid][ActOVeh] = ActVeh;
@@ -288,28 +351,10 @@ public AntiCarTroll(playerid)
     {
         ActPlayer[playerid][ActAntiSpam]=true; 
         SetTimerEx("ActResetSpam",2500,false,"d",playerid);
-        #if !defined ManualUse
-        new pName[MAX_PLAYER_NAME],actmsg[80];
-        GetPlayerName(playerid,pName,sizeof(pName));
-        #endif
-        #if defined Extreme_Safe
-        SetPlayerHealth(playerid,0);
-        format(actmsg,sizeof(actmsg),".: Server has scanned %s for Car Troll Cheats :.",pName);
-        SendClientMessageToAll(0xAA3333AA,actmsg);
-        return 1;
-        #endif
         #if defined ManualUse
-        #if defined OnPlayerCarTroll
-        return OnPlayerCarTroll(playerid,i, ActVehicle[i][VehicleTempOwner], 2);
-        #endif
+        rAct_Detected(playerid, i, ActVehicle[i][VehicleTempOwner], 2);
         #else
-        #if defined BanVersion
-        format(actmsg,sizeof(actmsg),".: Server has banned %s, reason: Car Troll Cheats :.",pName);
-        #else
-        format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
-        #endif
-        SendClientMessageToAll(0xFF0000A,actmsg);
-        SetTimerEx("ActDelay",250,false,"d",playerid);
+        rAct_Detected(playerid);
         #endif
         }
     }
@@ -322,7 +367,6 @@ public AntiCarTroll(playerid)
     forward OnPlayerCarTroll(playerid,vehicleid, trolledid, trolltype);// Only use if you defined ManualUse
 
     #endif
- 
 #else
  
 public ActDelay(playerid)
@@ -370,27 +414,10 @@ public OnPlayerUpdate(playerid)
                 SetPlayerHealth(playerid, 0.0);
                 SetTimerEx("ActRelease", 1500, false, "d", i);
                 SetTimerEx("ActResetSpam",1500,false,"d",i);
-                #if !defined ManualUse
-                new pName[MAX_PLAYER_NAME],actmsg[80];
-                GetPlayerName(playerid,pName,sizeof(pName));
-                #endif
-                #if defined Extreme_Safe
-                format(actmsg,sizeof(actmsg),".: Server has scanned %s for Car Troll Cheats :.",pName);
-                SendClientMessageToAll(0xAA3333AA,actmsg);
-                return 1;
-                #endif
                 #if defined ManualUse
-                #if defined OnPlayerCarTroll
-                return OnPlayerCarTroll(playerid, GetPlayerVehicleID(i), i, 3);
-                #endif
+                rAct_Detected(playerid,  GetPlayerVehicleID(i), i, 3);
                 #else
-                #if defined BanVersion
-                format(actmsg,sizeof(actmsg),".: Server has banned %s, reason: Car Troll Cheats :.",pName);
-                #else
-                format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
-                #endif
-                SendClientMessageToAll(0xFF0000A,actmsg);
-                SetTimerEx("ActDelay",250,false,"d",playerid);
+                rAct_Detected(playerid);
                 #endif
                 }
             }
@@ -434,7 +461,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
     {
         case 1:
         {
-            if(oldstate == 2) ActPlayer[playerid][ResetTAct] = SetTimerEx("ActReset",500,false,"d",playerid);
+            if(oldstate == 2) ActPlayer[playerid][ResetTAct] = SetTimerEx("ActReset",500,false,"d",playerid), ActPlayer[playerid][ActRemoteJack] = 0;
             else if(oldstate ==2 || oldstate == 3) ActPlayer[playerid][ActProtectFalse] = false;
             }
  
@@ -456,29 +483,10 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
             {                
                 ActPlayer[playerid][ActAntiSpam]=true;
                 SetTimerEx("ActResetSpam",2500,false,"d",playerid);
-                #if !defined ManualUse
-                new pName[MAX_PLAYER_NAME],actmsg[80];
-                GetPlayerName(playerid,pName,sizeof(pName));
-                #endif
-                #if defined Extreme_Safe
-                SetPlayerHealth(playerid,0);
-                format(actmsg,sizeof(actmsg),".: Server has scanned %s for Car Troll Cheats :.",pName);
-                SendClientMessageToAll(0xAA3333AA,actmsg);
-                #endif
                 #if defined ManualUse
-                #if defined OnPlayerCarTroll
-                OnPlayerCarTroll(playerid, GetPlayerVehicleID(playerid), INVALID_PLAYER_ID, 4);
-                #endif
+                rAct_Detected(playerid, GetPlayerVehicleID(playerid), INVALID_PLAYER_ID, 4);
                 #else
-                #if defined BanVersion
-                format(actmsg,sizeof(actmsg),".: Server has banned %s, reason: Car Troll Cheats :.",pName);
-                #else
-                format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
-                #endif
-                #endif
-                #if !defined ManualUse
-                SendClientMessageToAll(0xFF0000A,actmsg);
-                SetTimerEx("ActDelay",250,false,"d",playerid);
+                rAct_Detected(playerid);
                 #endif
                 }
 
@@ -498,29 +506,10 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
         {            
             ActPlayer[playerid][ActAntiSpam]=true;
             SetTimerEx("ActResetSpam",2500,false,"d",playerid);
-            #if !defined ManualUse
-            new pName[MAX_PLAYER_NAME],actmsg[80];
-            GetPlayerName(playerid,pName,sizeof(pName));
-            #endif
-            #if defined Extreme_Safe
-            SetPlayerHealth(playerid,0);
-            format(actmsg,sizeof(actmsg),".: Server has scanned %s for Car Troll Cheats :.",pName);
-            SendClientMessageToAll(0xAA3333AA,actmsg);
-            #endif
             #if defined ManualUse
-            #if defined OnPlayerCarTroll
-            OnPlayerCarTroll(playerid,GetPlayerVehicleID(playerid), INVALID_PLAYER_ID, 4);
-            #endif
+            rAct_Detected(playerid, GetPlayerVehicleID(playerid), INVALID_PLAYER_ID, 4);
             #else
-            #if defined BanVersion
-            format(actmsg,sizeof(actmsg),".: Server has banned %s, reason: Car Troll Cheats :.",pName);
-            #else
-            format(actmsg,sizeof(actmsg),".: Server has kicked %s, reason: Car Troll Cheats :.",pName);
-            #endif
-            #endif
-            #if !defined ManualUse
-            SendClientMessageToAll(0xFF0000A,actmsg);
-            SetTimerEx("ActDelay",250,false,"d",playerid);
+            rAct_Detected(playerid);
             #endif
             }
         else if(ActPlayer[playerid][ActProtectFalse]) ActPlayer[playerid][ActProtectFalse] = false;
@@ -534,7 +523,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
     return 1;
         #endif
 }
- 
+
 public OnPlayerDeath(playerid, killerid, reason)
 {
     ActPlayer[playerid][ActAntiSpam]=false;
@@ -578,6 +567,7 @@ public OnPlayerDisconnect(playerid, reason)
     {
         ActVehicle[gpVehicleID][VehicleTaken] =false;
         ActVehicle[gpVehicleID][VehicleTempOwner] = -1;
+        ActPlayer[playerid][ActRemoteJack] = 0;
         }
 
         #if defined OnPlayerDisconnectACT
