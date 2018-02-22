@@ -121,8 +121,8 @@ forward OnGameModeExitACT();
 
 public OnGameModeInit()
 {
-        print("     [[--|| rACT V7.0 ||--]]     ");
-        print("     [[--|| Anti car troll by RogueDrifter V 7.0 ||--]]      ");
+        print("     [[--|| rACT V8.0 ||--]]     ");
+        print("     [[--|| Anti car troll by RogueDrifter V 8.0 ||--]]      ");
         print("     [[--|| Successfully Loaded! ||--]]      ");
         SafeTimer = SetTimer("SafeReset",5000,true);
 
