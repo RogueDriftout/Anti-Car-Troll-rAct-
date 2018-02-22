@@ -67,7 +67,6 @@ native IsValidVehicle(vehicleid); // Unlock the hidden native
 forward ActPutPlayerInVehicle(playerid, vehicleid, seatid);
 forward ActSetPlayerPos(playerid, Float:x, Float:y, Float:z);
 
-forward rActRemoteJack(playerid, vehicleid);
 forward ActRPosP(playerid);
 forward ActResetPos(playerid);
 forward ActRelease(playerid);
@@ -123,7 +122,7 @@ forward OnGameModeExitACT();
 public OnGameModeInit()
 {
         print("     [[--|| rACT V7.0 ||--]]     ");
-        print("     [[--|| Anti car troll by RogueDrifter V 6.0 ||--]]      ");
+        print("     [[--|| Anti car troll by RogueDrifter V 7.0 ||--]]      ");
         print("     [[--|| Successfully Loaded! ||--]]      ");
         SafeTimer = SetTimer("SafeReset",5000,true);
 
@@ -232,25 +231,6 @@ stock ActCarEmpty(vehicleid)
 
 public ActResetPos(playerid) return GetPlayerPos(playerid, ActPlayer[playerid][ActPX], ActPlayer[playerid][ActPY], ActPlayer[playerid][ActPZ]);
 
-public rActRemoteJack(playerid, vehicleid)
-{
-    if(ActPlayer[playerid][ActRemoteJack] == 1)
-    {
-        if(!IsPEnExCar(playerid) && GetPlayerAnimationIndex(playerid) != 1231 && GetPlayerAnimationIndex(playerid) != 1266)
-        {
-            ActPlayer[playerid][ActRemoteJack] = 2;
-            #if defined ManualUse
-            rAct_Detected(playerid, GetPlayerVehicleID(playerid), INVALID_PLAYER_ID, 5);
-            #else
-            rAct_Detected(playerid);
-            #endif
-            }
-        else ActPlayer[playerid][ActRemoteJack] = 2;
-        }
-
-    return 1;
-}
-
 public SafeReset()
 {
     new AllVehicles[MAX_VEHICLES];
@@ -279,7 +259,7 @@ public SafeReset()
 
 public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 {
-    if(!ispassenger) ActPlayer[playerid][ActOVeh] = vehicleid, ActPlayer[playerid][ActRemoteJack] = 1, SetTimerEx("rActRemoteJack", 500, false, "ii", playerid, vehicleid);
+    if(!ispassenger) ActPlayer[playerid][ActOVeh] = vehicleid, ActPlayer[playerid][ActRemoteJack] = 1;
     if(!ActPlayer[playerid][ActProtectFalse]) ActPlayer[playerid][ActProtectFalse] = true;
     for(new i, j = GetPlayerPoolSize(); i <= j; i++)
     {
@@ -367,6 +347,7 @@ public AntiCarTroll(playerid)
     forward OnPlayerCarTroll(playerid,vehicleid, trolledid, trolltype);// Only use if you defined ManualUse
 
     #endif
+
 #else
  
 public ActDelay(playerid)
@@ -398,6 +379,20 @@ public ActRelease(playerid) return TogglePlayerControllable(playerid, 1);
 
 public OnPlayerUpdate(playerid)
 {
+    if(ActPlayer[playerid][ActRemoteJack] == 1)
+    {
+        if(GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_ENTER_VEHICLE)
+        {
+            ActPlayer[playerid][ActRemoteJack] = 2;
+            #if defined ManualUse
+            rAct_Detected(playerid,  ActPlayer[playerid][ActOVeh], INVALID_PLAYER_ID, 5);
+            #else
+            rAct_Detected(playerid);
+            #endif
+            }
+        else ActPlayer[playerid][ActRemoteJack] = 2;
+        }
+
     if(!IsPlayerInRangeOfPoint(playerid, 10.0, ActPlayer[playerid][ActPX], ActPlayer[playerid][ActPY], ActPlayer[playerid][ActPZ]) && ActPlayer[playerid][ActPX] != 0 && ActPlayer[playerid][ActPY] != 0 && ActPlayer[playerid][ActPZ] != 0)
     {
         for(new i, j = GetPlayerPoolSize(); i <= j; i++)
