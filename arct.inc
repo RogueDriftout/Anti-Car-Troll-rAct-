@@ -1,7 +1,7 @@
 /*
 Anti car troll include by RogueDrifter Jan 15th 2018
 -=-=-=-=-=-
-Last Updated : 2018 Mar 4th
+Last Updated : 2018 Mar 10th
 -=-=-=-=-=-=-=-=-
 
 Callback:
@@ -127,9 +127,24 @@ forward OnGameModeExitACT();
 #if defined ManualUse
 static rAct_Detected(playerid, vehicleid, trolledid, trolltype)
 {
-    if(!ActPlayer[playerid][ActCheater] && !ActPlayer[trolledid][ActCheater]) ActPlayer[playerid][ActCheater]  = true;
+    if(!ActPlayer[playerid][ActCheater]) 
+    {
+    	if(trolledid != INVALID_PLAYER_ID)
+    	{
+    		if(!ActPlayer[trolledid][ActCheater]) ActPlayer[playerid][ActCheater]  = true;
+    	}
+    	else
+    	{
+    		ActPlayer[playerid][ActCheater]  = true;
+    	}
+    }
+
     #if defined OnPlayerCarTroll
-    if(!ActPlayer[trolledid][ActCheater]) OnPlayerCarTroll(playerid,vehicleid, trolledid, trolltype);
+    if(trolledid != INVALID_PLAYER_ID)
+    {
+    	if(!ActPlayer[trolledid][ActCheater]) OnPlayerCarTroll(playerid,vehicleid, trolledid, trolltype);
+    }
+    else OnPlayerCarTroll(playerid,vehicleid, trolledid, trolltype);
     #endif
     return 1;
 }
@@ -339,9 +354,10 @@ public OnPlayerUpdate(playerid)
 
 public OnGameModeInit()
 {
-        print("     [[--|| rACT V9.0 ||--]]     ");
-        print("     [[--|| Anti car troll by RogueDrifter V 9.0 ||--]]      ");
+        print("     [[--|| rACT V13.0 ||--]]     ");
+        print("     [[--|| Anti car troll by RogueDrifter V 13.0 ||--]]      ");
         print("     [[--|| Successfully Loaded! ||--]]      ");
+        
         SafeTimer = SetTimer("ActSafeReset",2500,true);
 
         #if defined OnGameModeInitACT
@@ -353,6 +369,10 @@ public OnGameModeInit()
  
 public OnGameModeExit()
 {
+	print("     [[--|| rACT V13.0 ||--]]     ");
+    print("     [[--|| Anti car troll by RogueDrifter V 13.0 ||--]]      ");
+    print("     [[--|| Successfully Unloaded! ||--]]      ");
+
     KillTimer(SafeTimer);
 
     #if defined OnGameModeExitACT
