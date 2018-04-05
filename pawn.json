@@ -1,0 +1,12 @@
+{
+	"user": "RogueDriftout",
+	"repo": "Anti-Car-Troll-rAct-",
+	"entry": "test.pwn",
+	"output": "test.amx",
+	"dependencies": [
+		"sampctl/samp-stdlib"
+	],
+	"dev_dependencies": [
+		"ScavengeSurvive/test-boilerplate"
+	]
+}
